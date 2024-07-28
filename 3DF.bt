@@ -1,0 +1,127 @@
+//------------------------------------------------
+//--- 010 Editor Binary Template
+//
+//      File: 3DF.bt
+//   Authors: Strider
+//   Version: 1.0
+//   Purpose: Shows the fields of a 3DF model format.
+//  Category: Model File
+// File Mask: *.3df
+//   History: 
+//   1.0   Strider:  Initial release.
+//------------------------------------------------
+
+// Header structure definition
+struct Header
+{
+    SetBackColor(cLtAqua);
+    uint32 VCount;       // Number of vertices
+    uint32 FCount;       // Number of faces
+    uint32 BCount;       // Number of bones
+    uint32 TextureSize;  // Texture length in bytes
+};
+
+// Flags structure definition
+struct Flags
+{
+    SetBackColor(cLtGreen);
+    uint16 sfDoubleSide : 1;   // Marks face as textured on both sides
+    uint16 sfDarkBack : 1;     // Marks face as having a dark back side
+    uint16 sfOpacity : 1;      // Marks face as transparent
+    uint16 sfTransparent : 1;  // Marks face as non-solid (bullets pass through harmlessly)
+    uint16 sfMortal : 1;       // Marks face as a target zone
+    uint16 sfPhong : 1;        // Marks face as Phong mapped
+    uint16 sfEnvMap : 1;       // Marks face as Environment mapped
+    uint16 sfNeedVC : 1;       // Unused
+    uint16 unused : 7;         // Unused
+    uint16 sfDark : 1;         // Marks face as having a dark front side
+};
+
+// Face structure definition
+struct Face
+{
+    uint32 v1;         // Vertex 1
+    uint32 v2;         // Vertex 2
+    uint32 v3;         // Vertex 3
+    uint32 tax;        // Vertex 1 texture U coordinate
+    uint32 tbx;        // Vertex 2 texture U coordinate
+    uint32 tcx;        // Vertex 3 texture U coordinate
+    uint32 tay;        // Vertex 1 texture V coordinate
+    uint32 tby;        // Vertex 2 texture V coordinate
+    uint32 tcy;        // Vertex 3 texture V coordinate
+    Flags flags;       // Face flags
+    uint16 DMask;      // Appears to be unused
+    uint32 Distant;    // Purpose unknown
+    uint32 Next;       // Index to other faces
+    uint32 group;      // Appears to be unused
+    byte reserv[12];   // Reserved for future use
+};
+
+// Vertex structure definition
+struct Vertex
+{
+    float X;           // X coordinate
+    float Y;           // Y coordinate
+    float Z;           // Z coordinate
+    uint16 owner;      // Bone to which vertex is attached
+    uint16 hide;       // Whether the vertex is hidden in Designer 2
+};
+
+// Bone structure definition
+struct Bone
+{
+    byte name[32];     // Name
+    float X;           // X coordinate
+    float Y;           // Y coordinate
+    float Z;           // Z coordinate
+    int16 parent;      // Index to the parent bone, -1 if there is no parent
+    uint16 hide;       // Whether the bone is hidden in Designer 2
+};
+
+// Define a bit-field structure for the A1R5G5B5 pixel format
+typedef struct
+{
+    SetBackColor(cLtGray );	
+    BitfieldLeftToRight();
+	uint16 A : 1;   // Alpha component (1 bit)
+    uint16 R : 5;   // Blue component (5 bits)
+    uint16 G : 5;   // Green component (5 bits)
+    uint16 B : 5;   // Red component (5 bits)  
+}A1R5G5B5 <read=ReadA1R5G5B5>;
+
+string ReadA1R5G5B5( A1R5G5B5 &pixel )
+{   
+    uint16 A8 = pixel.A * 255;
+    uint16 R8 = ((pixel.R * 255) / 31) + 0.5;    // Red component (5 bits)
+    uint16 G8 = ((pixel.G * 255) / 31) + 0.5;    // Green component (5 bits)
+    uint16 B8 = ((pixel.B * 255) / 31) + 0.5;    // Blue component (5 bits)
+    string s;
+    SPrintf(s, "A=%00d  R=%00d G=%00d B=%00d",
+        A8,
+        R8,   // Red
+        G8,   // Green
+        B8);  // Blue
+
+    return s;
+}
+
+// Main template structure
+struct ModelFormat
+{
+    Header header;  // File header
+
+    // Faces array
+    Face faces[header.FCount];
+
+    // Vertices array
+    Vertex vertices[header.VCount];
+
+    // Bones array
+    Bone bones[header.BCount];
+
+    // Pixel data
+    A1R5G5B5 pixel[header.TextureSize / 2]; // Each pixel is 2 bytes
+};
+
+// Entry point
+ModelFormat modelFormat;
