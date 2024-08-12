@@ -1,0 +1,130 @@
+// Define the template for a .car file
+//------------------------------------------------
+//--- 010 Editor Binary Template
+//
+//      File: CAR.bt
+//   Authors: Strider
+//   Version: 1.0
+//   Purpose: Shows the fields of a CAR model format.
+//  Category: Model File
+// File Mask: *.car
+//   History: 
+//   1.0   Strider:  Initial release.
+//------------------------------------------------
+
+// Header (52 bytes)
+struct Header {
+    byte ModelName[32];        // texture name
+    uint32 AniCount;           // number of animations
+    uint32 SfxCount;           // number of sounds
+    uint32 VCount;             // number of vertices
+    uint32 FCount;             // number of faces
+    uint32 TextureSize;        // texture length in bytes
+};
+
+// Face (64 bytes)
+struct Flags {
+    SetBackColor(cLtGreen);
+    uint16 sfDoubleSide : 1;   // Marks face as textured on both sides
+    uint16 sfDarkBack : 1;     // Marks face as having a dark back side
+    uint16 sfOpacity : 1;      // Marks face as transparent
+    uint16 sfTransparent : 1;  // Marks face as non-solid (bullets pass through harmlessly)
+    uint16 sfMortal : 1;       // Marks face as a target zone
+    uint16 sfPhong : 1;        // Marks face as Phong mapped
+    uint16 sfEnvMap : 1;       // Marks face as Environment mapped
+    uint16 sfNeedVC : 1;       // Unused
+    uint16 unused : 7;         // Unused
+    uint16 sfDark : 1;         // Marks face as having a dark front side
+};
+
+struct Face {
+    uint32 v1;                 // vertex 1
+    uint32 v2;                 // vertex 2
+    uint32 v3;                 // vertex 3
+    uint32 tax;                // v1 texture U coordinate
+    uint32 tbx;                // v2 texture U coordinate
+    uint32 tcx;                // v3 texture U coordinate
+    uint32 tay;                // v1 texture V coordinate
+    uint32 tby;                // v2 texture V coordinate
+    uint32 tcy;                // v3 texture V coordinate
+    Flags flags;              // face flags
+    uint16 DMask;              // appears to be unused by the games
+    uint32 Distant;            // unused in-game
+    uint32 Next;               // unused in-game
+    uint32 group;              // appears to be unused by the games
+    byte reserv[12];           // reserved for future use
+};
+
+// Vertex (16 bytes)
+struct Vertex {
+    float X;                   // X coordinate
+    float Y;                   // Y coordinate
+    float Z;                   // Z coordinate
+    uint16 owner;              // bone to which vertex is attached
+    uint16 hide;               // whether the vertex is hidden in Designer 2
+};
+
+
+struct Animation {
+    byte aniName[32];          // name of the VTL file
+    uint32 aniKPS;             // keyframes per second
+    uint32 FramesCount;        // number of frames
+
+    struct Frame {
+        struct VertexFrame {
+            int16 X;  // X coordinate
+            int16 Y;  // Y coordinate
+            int16 Z;  // Z coordinate
+        } vertices[header.VCount];  // Array of vertices for this frame
+    } frames[FramesCount];  // Array of frames, size determined by FramesCount
+};
+                
+struct Sound;
+// Sound (36 + length bytes)
+struct Sound {
+    byte name[32];            // Name of the sound (32 bytes)
+    uint32 length;            // Length of the sound data (4 bytes)
+    byte data [length];        // Sound data, size is determined by the 'length' field
+};
+// Animation/Sound Cross-Reference Table (256 bytes)
+struct CrossRef {
+    int32 soundIndex;         // sound index (-1 if no sound mapped)
+};
+
+typedef struct
+{
+    SetBackColor(cLtGray );	
+    BitfieldLeftToRight();
+	uint16 A : 1;   // Alpha component (1 bit)
+    uint16 R : 5;   // Blue component (5 bits)
+    uint16 G : 5;   // Green component (5 bits)
+    uint16 B : 5;   // Red component (5 bits)  
+}A1R5G5B5 <read=ReadA1R5G5B5>;
+
+string ReadA1R5G5B5( A1R5G5B5 &pixel )
+{   
+    uint16 A8 = pixel.A * 255;
+    uint16 R8 = ((pixel.R * 255) / 31) + 0.5;    // Red component (5 bits)
+    uint16 G8 = ((pixel.G * 255) / 31) + 0.5;    // Green component (5 bits)
+    uint16 B8 = ((pixel.B * 255) / 31) + 0.5;    // Blue component (5 bits)
+    string s;
+    SPrintf(s, "A=%00d  R=%00d G=%00d B=%00d",
+        A8,
+        R8,   // Red
+        G8,   // Green
+        B8);  // Blue
+
+    return s;
+}
+
+// Define the overall structure of the .car file
+struct CARFile {
+    Header header;                // Header (52 bytes)
+    Face faces[header.FCount];    // Array of faces, size determined by FCount
+    Vertex vertices[header.VCount];  // Array of vertices, size determined by VCount
+    A1R5G5B5 pixel[header.TextureSize / 2];  // Array of pixels, size determined by TextureSize
+    Animation animations[header.AniCount] <optimize=false>;  // Array of animations, size determined by AniCount
+    Sound sounds[header.SfxCount] <optimize=false>; // Array of sounds, size determined by SfxCount
+    CrossRef crossRefTable[64]; // Fixed size for cross-reference table
+};
+CARFile modelFormat;
