@@ -9,85 +9,90 @@
 // File Mask: *.3df
 //   History: 
 //   1.0   Strider:  Initial release.
+//   1.5   Strider:  Variable renaming and commenting
+//   1.6   Strider:  Modified Syntax highlight
 //------------------------------------------------
 
 // Header structure definition
-struct Header
+struct Headers
 {
-    SetBackColor(cLtAqua);
-    uint32 VCount;       // Number of vertices
-    uint32 FCount;       // Number of faces
-    uint32 BCount;       // Number of bones
-    uint32 TextureSize;  // Texture length in bytes
+    uint32 VertexCount <comment="Number of Vertices">;    
+    uint32 FaceCount <comment="Number of Faces">;      
+    uint32 BoneCount <comment="Number of Bones">;   
+    uint32 TextureSize <comment="In bytes. Formula = (Height * Width) * 2">;
 };
 
 // Flags structure definition
 struct Flags
 {
-    SetBackColor(cLtGreen);
-    uint16 sfDoubleSide : 1;   // Marks face as textured on both sides
-    uint16 sfDarkBack : 1;     // Marks face as having a dark back side
-    uint16 sfOpacity : 1;      // Marks face as transparent
-    uint16 sfTransparent : 1;  // Marks face as non-solid (bullets pass through harmlessly)
-    uint16 sfMortal : 1;       // Marks face as a target zone
-    uint16 sfPhong : 1;        // Marks face as Phong mapped
-    uint16 sfEnvMap : 1;       // Marks face as Environment mapped
-    uint16 sfNeedVC : 1;       // Unused
-    uint16 unused : 7;         // Unused
-    uint16 sfDark : 1;         // Marks face as having a dark front side
+    uint16 DoubleSide : 1 <comment="Marks face as textured on both sides">;
+    uint16 DarkBack : 1 <comment="Marks face as having a dark back side">;      
+    uint16 Opacity : 1 <comment="Marks face as transparent">;       
+    uint16 Transparent : 1 <comment="Marks face as non-solid (bullets pass through harmlessly)">;   
+    uint16 Mortal : 1 <comment="Marks face as a target zone">;       
+    uint16 Phong : 1 <comment="Marks face as Phong mapped">;         
+    uint16 EnvMap : 1 <comment="Marks face as Environment mapped">;       
+    uint16 NeedVC : 1 <comment="Not defined">;
+    uint16 Unused : 7 <comment="Unused">;
+    uint16 Dark : 1 <comment=" Marks face as having a dark front side">;
 };
 
 // Face structure definition
 struct Face
 {
-    uint32 v1;         // Vertex 1
-    uint32 v2;         // Vertex 2
-    uint32 v3;         // Vertex 3
-    uint32 tax;        // Vertex 1 texture U coordinate
-    uint32 tbx;        // Vertex 2 texture U coordinate
-    uint32 tcx;        // Vertex 3 texture U coordinate
-    uint32 tay;        // Vertex 1 texture V coordinate
-    uint32 tby;        // Vertex 2 texture V coordinate
-    uint32 tcy;        // Vertex 3 texture V coordinate
-    Flags flags;       // Face flags
-    uint16 DMask;      // Appears to be unused
-    uint32 Distant;    // Purpose unknown
-    uint32 Next;       // Index to other faces
-    uint32 group;      // Appears to be unused
-    byte reserv[12];   // Reserved for future use
+    uint32 v1 <name="Vertex 1"> ;        
+    uint32 v2 <name="Vertex 2">;        
+    uint32 v3 <name="Vertex 3">;        
+    uint32 tax <name="V1 U coord", comment="Vertex 1 texture U coordinate">;
+    uint32 tbx <name="V2 U coord", comment="Vertex 2 texture U coordinate">;       
+    uint32 tcx <name="V3 U coord", comment="Vertex 3 texture U coordinate">;        
+    uint32 tay <name="V1 V coord", comment="Vertex 1 texture V coordinate">;       
+    uint32 tby <name="V2 V coord", comment="Vertex 2 texture V coordinate">;
+    uint32 tcy <name="V3 V coord", comment="Vertex 3 texture V coordinate">;        
+    Flags flags <style=sHeading3>;       // Face flags
+    uint16 DMask <comment="Appears to be unused by the games, possibly editor/tool-specific">; 
+    uint32 Distant <name="Previous", comment="Used in software mode for the sorting of faces">;
+    uint32 Next <comment="Used in software mode for the sorting of faces">;
+    uint32 Group <comment="Appears to be unused by the games, possibly editor/tool-specific">;
+    byte Reserv[12] <comment="Unused, reserved for further use">;
 };
 
 // Vertex structure definition
 struct Vertex
 {
-    float X;           // X coordinate
-    float Y;           // Y coordinate
-    float Z;           // Z coordinate
-    uint16 owner;      // Bone to which vertex is attached
-    uint16 hide;       // Whether the vertex is hidden in Designer 2
+    float X <comment="X coordinate of vertex">;
+    float Y <comment="Y coordinate of vertex">;
+    float Z <comment="Z coordinate of vertex">;
+    uint16 Owner <comment="Bone to which the vertex is attached">;
+    uint16 Hide <comment="Whether the vertex is hidden in Designer 2, has no effect in-game">;
 };
 
 // Bone structure definition
 struct Bone
 {
     byte name[32];     // Name
-    float X;           // X coordinate
-    float Y;           // Y coordinate
-    float Z;           // Z coordinate
-    int16 parent;      // Index to the parent bone, -1 if there is no parent
-    uint16 hide;       // Whether the bone is hidden in Designer 2
+    float X <comment="X coordinate of bone">;
+    float Y <comment="Y coordinate of bone">;
+    float Z <comment="Z coordinate of bone">;
+    int16 Parent <comment="Index to the parent bone, -1 if there is no parent">;
+    uint16 Hide <comment="Whether the bone is hidden in Designer 2, has no effect in-game">;
 };
 
 // Define a bit-field structure for the A1R5G5B5 pixel format
 typedef struct
-{
-    SetBackColor(cLtGray );	
+{	
     BitfieldLeftToRight();
-	uint16 A : 1;   // Alpha component (1 bit)
-    uint16 R : 5;   // Blue component (5 bits)
-    uint16 G : 5;   // Green component (5 bits)
-    uint16 B : 5;   // Red component (5 bits)  
-}A1R5G5B5 <read=ReadA1R5G5B5>;
+	uint16 A : 1 <comment="5-bit value">;
+    uint16 R : 5 <comment="5-bit value">;
+    uint16 G : 5 <comment="5-bit value">;
+    uint16 B : 5 <comment="5-bit value">;
+}A1R5G5B5 <read=ReadA1R5G5B5, comment=MyComment, style=sData>;//, bgcolor=CalculatePixelStyle>;
+
+string MyComment(A1R5G5B5 &comment)
+{
+        string output = "8-bit per channel format";
+        return output;
+}
 
 string ReadA1R5G5B5( A1R5G5B5 &pixel )
 {   
@@ -96,7 +101,7 @@ string ReadA1R5G5B5( A1R5G5B5 &pixel )
     uint16 G8 = ((pixel.G * 255) / 31) + 0.5;    // Green component (5 bits)
     uint16 B8 = ((pixel.B * 255) / 31) + 0.5;    // Blue component (5 bits)
     string s;
-    SPrintf(s, "A=%00d  R=%00d G=%00d B=%00d",
+    SPrintf(s, "A:%00d | R:%00d | G:%00d | B:%00d",
         A8,
         R8,   // Red
         G8,   // Green
@@ -105,22 +110,31 @@ string ReadA1R5G5B5( A1R5G5B5 &pixel )
     return s;
 }
 
+/*int64 CalculatePixelStyle(A1R5G5B5 &color)
+{
+    local uint16 R8 = ((color.R * 255) / 31);    // Red component (5 bits)
+    local uint16 G8 = ((color.G * 255) / 31);    // Green component (5 bits)
+    local uint16 B8 = ((color.B * 255) / 31);    // Blue component (5 bits)
+    local int64 pixelColor = R8 + G8 + B8;
+    return pixelColor;
+}*/
+
 // Main template structure
 struct ModelFormat
 {
-    Header header;  // File header
+    Headers Header <style=sHeading1>;  // File header
 
     // Faces array
-    Face faces[header.FCount];
+    Face Faces[Header.FaceCount]<style=sSection1>;
 
     // Vertices array
-    Vertex vertices[header.VCount];
+    Vertex Vertices[Header.VertexCount]<style=sSection2Accent>;
 
     // Bones array
-    Bone bones[header.BCount];
+    Bone Bones[Header.BoneCount]<style=sSection4>;
 
     // Pixel data
-    A1R5G5B5 pixel[header.TextureSize / 2]; // Each pixel is 2 bytes
+    A1R5G5B5 Pixel[Header.TextureSize / 2]; // Each pixel is 2 bytes
 };
 
 // Entry point
